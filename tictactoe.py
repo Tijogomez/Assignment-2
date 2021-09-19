@@ -1,97 +1,80 @@
 import random
-game_cache={}
-def game():
-    rounds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    end = False
-    combinations = ((0, 1, 2), (3, 4, 5), (6, 7, 8), (0, 3, 6), (1, 4, 7), (2, 5, 8), (0, 4, 8), (2, 4, 6))
-    comp_choice=[1,2,3,4,5,6,7,8,9]
-    def draw():
-        print(rounds[0], rounds[1], rounds[2])
-        print(rounds[3], rounds[4], rounds[5])
-        print(rounds[6], rounds[7], rounds[8])
-        print()
+import numpy as np
 
-    def player1():
-        n = choices()
-        if rounds[n] == "X" or rounds[n] == "O":
-            print("\nYou can't go there. Try again")
-            player1()
-        else:
-            rounds[n] = "X"
+def display(choice):
+    print("| {} | {} | {} |".format(choice[0][0], choice[0][1], choice[0][2]))
+    print("| {} | {} | {} |".format(choice[1][0], choice[1][1], choice[1][2]))
+    print("| {} | {} | {} | \n".format(choice[2][0], choice[2][1], choice[2][2]))
 
-    def comp():
-        n = random.choice(comp_choice)
-        if rounds[n] == "X" or rounds[n] == "O":
-            print("\nYou can't go there. Try again")
-            comp()
-        else:
-            rounds[n] = "O"
+def comp(val, sym):
+    out_row = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]
+    out_col = [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [2, 1, 0]]
+    for row, col in zip(out_row, out_col):
+        if val[row[0]][col[0]] == val[row[1]][col[1]] == val[row[2]][col[2]] == sym:
+            return True
+    return False
 
-    def choices():
-        while True:
+def play_game():
+    list = [None] * 10
+    flag = 0
+    options = ["X", "O"]
+    digits = np.array([[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]])
+    eg = ["00", "01", "02","10", "11", "12", "20", "21", "22"]
+    for i in range(0, 9):
+        if i % 2 == 00:
             while True:
-                a = int(input())
                 try:
-                    a -= 1
-                    if a in range(0, 9):
-                        return a
+                    player = str(input("Type a position :"))
+                    if player in eg:
+                        eg.remove(player)
+                        digits[int(player[0])][int(player[1])] = options[0]
+                        display(digits)
+                        list[i] = digits.copy()
+                        if comp(digits, options[0]):
+                            result = "Player Won the Game"
+                            print(result, "\n")
+                            list[9] = result
+                            flag = 1
+                        break
                     else:
-                        print("\nThat's not on the board. Try again")
+                        print("please select other position")
                         continue
-                except ValueError:
-                    print("\nThat's not a number. Try again")
-                    continue
+                except:
+                    print("please Enter correct input :")
+            if flag == 1:
+                break
+        else:
+            print("Wait for computer")
+            computer = random.choice(eg)
+            eg.remove(computer)
+            digits[int(computer[0])][int(computer[1])] = options[1]
+            display(digits)
+            list[i] = digits.copy()
+            if comp(digits, options[1]):
+                result = "Computer Won the Game"
+                print(result, "\n")
+                list[9] = result
+                break
+    if flag == 0:
+        result = "Game is Tied"
+        print(result)
+        list[9] = result
 
-    def board():
-        count = 0
-        for a in combinations:
-            if rounds[a[0]] == rounds[a[1]] == rounds[a[2]] == "X":
-                print("Player Wins!\n")
-                print("Congratulations!\n")
-                rounds[9]=0
-                return True
-            if rounds[a[0]] == rounds[a[1]] == rounds[a[2]] == "O":
-                print("Computer Wins!\n")
-                print("Congratulations!\n")
-                rounds[9]=1
-                return True
-        for a in range(9):
-            if rounds[a] == "X" or rounds[a] == "O":
-                count += 1
-            if count == 9:
-                print("The game ends in a Tie\n")
-                return True
+    return list
 
-    while not end:
-        draw()
-        end = board()
-        temp=rounds
+games = 1
+k = {}
+while games <= 10:
+    print("Game {}:".format(games))
+    display([["00", "01", "02"], ["10", "11", "12"], ["20", "21" , "22"]])
+    k[games] = play_game()
+    games += 1
 
-        if end == True:
-            break
-        print("Player 1 choose where to place a cross")
-        player1()
-        print()
-        draw()
-        end = board()
-        if end == True:
-            break
-        print("Player 2 choose where to place a nought")
-        comp()
-        print()
-    return rounds
-i=0
-while i<10:
-    i+=1
-    x=game()
-    game_cache[i]=x
-round_number=int(input("ENTER THE ROUND :"))
-round_number_dec=round_number-1
-y=game_cache[round_number]
-print(y[0], y[1], y[2])
-print(y[3], y[4], y[5])
-print(y[6], y[7], y[8])
-if(y[9]==0):
-    print("PLAYER WON THE ROUND {}",(round_number_dec))
-else:
-    print("COMPUTER WON THE ROUND {}",(round_number_dec))
+details = int(input("Do you want to see any round :"))
+for key, value in k.items():
+    if key == details:
+        for element in range(len(value) - 1):
+            if value[element] is not None:
+                print("Move {} ({})".format(element + 1, "player" if element % 2 == 0 else "computer"))
+                display(value[element])
+        print(value[-1])
